@@ -79,11 +79,8 @@ export function useReview() {
       return;
     }
 
-    // Check file objects exist
     if (!figmaImage.file || !liveImage.file) {
-      console.error(
-        "File objects missing — images may have been lost on navigation",
-      );
+      console.error("File objects missing");
       return;
     }
 
@@ -91,18 +88,13 @@ export function useReview() {
     setIssues([]);
 
     try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
       const formData = new FormData();
       formData.append("figma", figmaImage.file);
       formData.append("live", liveImage.file);
 
-      // always use /api/diff/raw for now
-      // this works without needing uploadId
       const res = await fetch("/api/diff/raw", {
         method: "POST",
-        headers: headers, // no Content-Type — FormData sets it automatically
+        credentials: "include",
         body: formData,
       });
 
@@ -113,17 +105,16 @@ export function useReview() {
 
       const data = await res.json();
 
-      // map raw regions to issue format for inspector
       const issues = (data.data?.regions || []).map((region, i) => ({
-        id: `issue_${i}`,
-        category: region.issue_type || "Visual",
-        label: `Region ${i + 1} — ${region.issue_type || "diff"}`,
-        severity: region.severity,
-        description: "Visual mismatch detected",
-        expected: region.color?.figma_rgb || "—",
-        actual: region.color?.live_rgb || "—",
-        cssfix: "",
-        bbox: region.bbox,
+        id: region.id || `issue_${i}`,
+        category: region.category || region.issue_type || "Visual",
+        label: region.label || `Region ${i + 1}`,
+        severity: region.severity || "low",
+        description: region.description || "Visual mismatch detected",
+        expected: region.expected || region.color?.figma_rgb || "-",
+        actual: region.actual || region.color?.live_rgb || "-",
+        cssfix: region.cssfix || "",
+        bbox: region.bbox || null,
         source: "image",
       }));
 

@@ -1,44 +1,51 @@
-require('dotenv').config()
-const express = require('express')
-const cors    = require('cors')
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const passport = require("passport");
 
-const connectDB        = require('./src/config/db')
-const errorMiddleware  = require('./src/middlewares/error.middleware')
+require("./src/config/passport");
 
-const authRoutes    = require('./src/routes/auth.routes')
-const uploadRoutes  = require('./src/routes/upload.routes')
-const reviewRoutes  = require('./src/routes/review.routes')
-const diffRoutes    = require('./src/routes/diff.routes')
-const projectRoutes = require('./src/routes/project.routes')
-const figmaRoutes   = require('./src/routes/figma.routes')
+const connectDB = require("./src/config/db");
+const errorMiddleware = require("./src/middlewares/error.middleware");
 
-const app  = express()
-const PORT = process.env.PORT || 5000
+const authRoutes = require("./src/routes/auth.routes");
 
-// Connect MongoDB
-connectDB()
+const app = express();
+const PORT = process.env.PORT || 5001;
 
-// Global middlewares
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+connectDB();
 
-// Routes
-app.use('/api/auth',    authRoutes)
-app.use('/api/upload',  uploadRoutes)
-app.use('/api/review',  reviewRoutes)
-app.use('/api/diff',    diffRoutes)
-app.use('/api/project', projectRoutes)
-app.use('/api/figma',   figmaRoutes)
+// ─────────────────────────────
+// FIXED CORS (IMPORTANT)
+// ─────────────────────────────
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date() })
-})
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Global error handler — must be last
-app.use(errorMiddleware)
+app.use(passport.initialize());
+
+// ROUTES
+app.use("/api/auth", authRoutes);
+app.use("/api/diff", require("./src/routes/diff.routes"));
+app.use("/api/review", require("./src/routes/review.routes"));
+app.use("/api/upload", require("./src/routes/upload.routes"));
+
+// HEALTH
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", time: new Date() });
+});
+
+// ERROR HANDLER
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})
+  console.log(`Server running on http://localhost:${PORT}`);
+});

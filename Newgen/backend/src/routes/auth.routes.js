@@ -1,41 +1,139 @@
-const express = require('express')
-const { body } = require('express-validator')
-const router  = express.Router()
+// const express = require("express");
+// const { body } = require("express-validator");
+// const passport = require("passport");
+// const jwt = require("jsonwebtoken");
+
+// const router = express.Router();
+
+// const {
+//   register,
+//   login,
+//   verifyEmail,
+//   forgotPassword,
+//   resetPassword,
+// } = require("../controllers/auth.controller");
+
+// const { protect } = require("../middlewares/auth.middleware");
+
+// // ─────────────────────────────
+// // VALIDATION
+// // ─────────────────────────────
+// const registerRules = [
+//   body("name").notEmpty(),
+//   body("email").isEmail(),
+//   body("password").isLength({ min: 6 }),
+// ];
+
+// const loginRules = [
+//   body("email").isEmail(),
+//   body("password").notEmpty(),
+// ];
+
+// // ─────────────────────────────
+// // AUTH ROUTES
+// // ─────────────────────────────
+
+// router.post("/register", registerRules, register);
+// router.post("/login", loginRules, login);
+
+// router.get("/verify-email/:token", verifyEmail);
+
+// router.post("/forgot-password", forgotPassword);
+// router.post("/reset-password/:token", resetPassword);
+
+// // ─────────────────────────────
+// // GOOGLE OAUTH (IMPORTANT)
+// // ─────────────────────────────
+
+// // Step 1
+// router.get(
+//   "/google",
+//   passport.authenticate("google", {
+//     scope: ["profile", "email"],
+//   })
+// );
+
+// // Step 2 (NO controller needed)
+// router.get(
+//   "/google/callback",
+//   passport.authenticate("google", {
+//     session: false,
+//     failureRedirect: "http://localhost:5173/login",
+//   }),
+//   (req, res) => {
+//     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "7d",
+//     });
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       sameSite: "lax",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     return res.redirect("http://localhost:5173/");
+//   },
+// );
+
+// module.exports = router;
+
+const express = require("express");
+const { body } = require("express-validator");
+const passport = require("passport");
+
+const router = express.Router();
 
 const {
   register,
   login,
-  getMe,
-  updateProfile,
-  changePassword,
-  forgotPassword,
-  resetPassword
-} = require('../controllers/auth.controller')
+  verifyEmail,
+  googleAuthSuccess,
+  me,
+} = require("../controllers/auth.controller");
 
-const { protect } = require('../middlewares/auth.middleware')
+const { protect } = require("../middlewares/auth.middleware");
 
-// Validation rules
+// ─────────────────────────────
+// VALIDATION
+// ─────────────────────────────
 const registerRules = [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').optional().isIn(['designer', 'developer', 'reviewer']).withMessage('Invalid role')
-]
+  body("name").notEmpty(),
+  body("email").isEmail(),
+  body("password").isLength({ min: 6 }),
+];
 
-const loginRules = [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
-]
+const loginRules = [body("email").isEmail(), body("password").notEmpty()];
 
-// Public routes
-router.post('/register',                    registerRules, register)
-router.post('/login',                       loginRules,    login)
-router.post('/forgot-password',             forgotPassword)
-router.post('/reset-password/:token',       resetPassword)
+// ─────────────────────────────
+// AUTH ROUTES
+// ─────────────────────────────
+router.post("/register", registerRules, register);
+router.post("/login", loginRules, login);
 
-// Protected routes
-router.get ('/me',                protect,  getMe)
-router.put ('/update-profile',    protect,  updateProfile)
-router.put ('/change-password',   protect,  changePassword)
+router.get("/verify-email/:token", verifyEmail);
 
-module.exports = router
+// ─────────────────────────────
+// ME ROUTE (FIXED)
+// ─────────────────────────────
+router.get("/me", protect, me);
+
+// ─────────────────────────────
+// GOOGLE AUTH
+// ─────────────────────────────
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  }),
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "http://localhost:5173/login",
+  }),
+  googleAuthSuccess,
+);
+
+module.exports = router;

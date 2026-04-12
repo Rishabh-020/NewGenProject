@@ -88,7 +88,7 @@ def compute_pixel_diff(figma, live):
 #   White = real difference
 
 def apply_threshold(diff):
-    THRESHOLD_VALUE = 30    # tune this: lower = more sensitive, higher = less
+    THRESHOLD_VALUE = 45    # tune this: lower = more sensitive, higher = less
     _, thresh = cv2.threshold(diff, THRESHOLD_VALUE, 255, cv2.THRESH_BINARY)
     return thresh
 
@@ -111,8 +111,8 @@ def apply_threshold(diff):
 
 def dilate_diff(thresh):
     # rectangular kernel — expands in all directions equally
-    kernel  = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-    dilated = cv2.dilate(thresh, kernel, iterations=2)
+    kernel  = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 8))
+    dilated = cv2.dilate(thresh, kernel, iterations=1)
     return dilated
 
 
@@ -137,9 +137,9 @@ def find_diff_regions(dilated, diff, figma, live, w, h):
 
     regions  = []
 
-    # ignore tiny regions — less than 0.2% of total image area
+    # ignore tiny regions — less than 0.5% of total image area
     # this filters out stray pixels that slipped through threshold
-    min_area = (w * h) * 0.002
+    min_area = (w * h) * 0.005
 
     for contour in contours:
         area = cv2.contourArea(contour)
