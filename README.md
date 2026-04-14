@@ -5,31 +5,124 @@ Compare Figma designs vs live implementations. OpenCV detects pixel diffs, Claud
 ## Folder Structure
 
 ```
-ui-reviewer/
-├── frontend/        ← React + Tailwind (Vite)
+Newgen/
+├── backend/                  ← Node.js + Express API orchestrator
+│   ├── package.json          ← Backend dependencies
+│   ├── server.js             ← Main application entry point
+│   ├── tmp/
+│   │   └── uploads/          ← Temporary storage for uploaded images
 │   └── src/
-│       ├── features/
-│       │   ├── upload/          ← Upload screens
-│       │   │   ├── components/  (DropZone, ImagePreview)
-│       │   │   ├── hooks/       (useUpload)
-│       │   │   ├── pages/       (UploadPage)
-│       │   │   └── context/     (UploadContext)
-│       │   ├── review/          ← Compare view
-│       │   │   ├── components/  (ReviewCanvas, SideBySide, SliderOverlay)
-│       │   │   ├── hooks/       (useReview)
-│       │   │   ├── pages/       (ReviewPage)
-│       │   │   └── context/     (ReviewContext)
-│       │   └── inspector/       ← Issue panel
-│       │       ├── components/  (IssueInspector, IssueCard, SeverityBadge)
-│       │       ├── hooks/       (useIssues)
-│       │       └── context/     (InspectorContext)
-│       └── shared/
-│           ├── components/      (Sidebar)
-│           └── hooks/           (useLocalStorage)
-└── backend/         ← Node.js + Express + OpenCV + Claude
-    ├── server.js
-    ├── diff.py
-    └── package.json
+│       ├── config/           ← Configuration files
+│       │   ├── claude.js
+│       │   ├── db.js
+│       │   └── passport.js
+│       ├── controllers/      ← Request handlers
+│       │   ├── auth.controller.js
+│       │   ├── diff.controller.js
+│       │   ├── figma.controller.js
+│       │   ├── project.controller.js
+│       │   ├── review.controller.js
+│       │   └── upload.controller.js
+│       ├── middlewares/      ← Express middlewares
+│       │   ├── auth.middleware.js
+│       │   ├── error.middleware.js
+│       │   └── upload.middleware.js
+│       ├── models/           ← Database models
+│       │   ├── project.model.js
+│       │   ├── review.model.js
+│       │   ├── upload.model.js
+│       │   └── user.model.js
+│       ├── routes/           ← Express route definitions
+│       │   ├── auth.routes.js
+│       │   ├── diff.routes.js
+│       │   ├── figma.routes.js
+│       │   ├── project.routes.js
+│       │   ├── review.routes.js
+│       │   └── upload.routes.js
+│       ├── scripts/          ← External scripts
+│       │   └── diff.py       ← OpenCV implementation
+│       ├── services/         ← Core business logic
+│       │   ├── claude.service.js
+│       │   ├── diff.service.js
+│       │   ├── email.service.js
+│       │   └── figma.service.js
+│       └── utils/            ← Helper functions
+│           ├── fileHelper.js
+│           ├── prompts.js
+│           └── response.js
+│
+└── frontend/                 ← React + Tailwind CSS (Vite)
+    ├── index.html            ← App entry HTML
+    ├── package.json          ← Frontend dependencies
+    ├── postcss.config.js     ← PostCSS config for Tailwind
+    ├── tailwind.config.js    ← Tailwind styling configuration
+    ├── vite.config.js        ← Vite bundler configuration
+    └── src/
+        ├── App.jsx           ← Main React component and Router setup
+        ├── main.jsx          ← React DOM mounting point
+        ├── index.css         ← Global CSS styles
+        ├── features/         ← Feature-based directory structure
+        │   ├── auth/         ← Authentication features
+        │   │   ├── context/
+        │   │   │   └── AuthContext.jsx
+        │   │   ├── hooks/
+        │   │   │   └── useAuth.js
+        │   │   └── pages/
+        │   │       ├── GoogleSuccess.jsx
+        │   │       ├── LoginPage.jsx
+        │   │       └── RegisterPage.jsx
+        │   ├── figma/        ← Figma integration
+        │   │   ├── components/
+        │   │   │   └── FigmaConnect.jsx
+        │   │   ├── context/
+        │   │   │   └── FigmaContext.jsx
+        │   │   └── hooks/
+        │   │       └── useFigma.js
+        │   ├── inspector/    ← Issue panel & AI feedback dashboard
+        │   │   ├── AnalysisResults.jsx ← Top-level AI results screen
+        │   │   ├── components/
+        │   │   │   ├── AnalysisSummary.jsx
+        │   │   │   ├── CategoryBreakdown.jsx
+        │   │   │   ├── IssueCard.jsx
+        │   │   │   ├── IssueInspector.jsx
+        │   │   │   ├── IssueList.jsx
+        │   │   │   ├── MetricCard.jsx
+        │   │   │   ├── ScoreRing.jsx
+        │   │   │   └── SeverityBadge.jsx
+        │   │   ├── context/
+        │   │   │   └── InspectorContext.jsx
+        │   │   ├── css/
+        │   │   │   └── AnalysisResults.css
+        │   │   ├── hooks/
+        │   │   │   └── useIssues.js
+        │   │   └── utils/
+        │   │       ├── mockData.js
+        │   │       └── scoring.js
+        │   ├── landing/      ← Public marketing footprint
+        │   │   └── pages/
+        │   │       └── LandingPage.jsx
+        │   ├── review/       ← Image comparison stage
+        │   │   ├── components/
+        │   │   │   ├── ReviewCanvas.jsx
+        │   │   │   ├── SideBySide.jsx
+        │   │   │   └── SliderOverlay.jsx
+        │   │   ├── context/
+        │   │   │   └── ReviewContext.jsx
+        │   │   └── pages/
+        │   │       └── ReviewPage.jsx
+        │   └── upload/       ← Image uploading features
+        │       ├── components/
+        │       │   └── (DropZone, ImagePreview components)
+        │       ├── context/
+        │       │   └── UploadContext.jsx
+        │       └── pages/
+        │           └── UploadPage.jsx
+        └── shared/           ← App-wide reusable resources
+            ├── components/
+            │   ├── ProtectedRoute.jsx
+            │   └── Sidebar.jsx
+            └── hooks/
+                └── useLocalStorage.js
 ```
 
 ## Setup
